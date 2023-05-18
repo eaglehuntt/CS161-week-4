@@ -5,12 +5,13 @@ Milestones 1 & 2 for Wordle.
 """
 
 import random
+import re
 
 from WordleDictionary import FIVE_LETTER_WORDS
 from WordleGraphics import WordleGWindow, N_COLS, N_ROWS
 
 
-class wordle:
+class Wordle:
 
     def __init__(self) -> None:
         self.gw = WordleGWindow()
@@ -44,15 +45,43 @@ class wordle:
         entered_word = self.get_user_guess(self.guess_counter)
 
         if entered_word == self.__secret_word \
-                and self.validate_guess_and_color_squares(entered_word):
+                and self.validate_guess(entered_word):
             self.gw.show_message('You win!')
-        elif self.guess_counter == 5 and entered_word != self.__secret_word \
-                and self.validate_guess_and_color_squares(entered_word):
-            self.gw.show_message(f'You lose! Word: {self.__secret_word}')
+            self.show_win_animation()
 
-        if self.guess_counter < 5 and self.validate_guess_and_color_squares(entered_word):
-            self.guess_counter += 1
-            self.gw.set_current_row(self.guess_counter)
+        elif self.guess_counter == 5 and entered_word != self.__secret_word \
+                and self.validate_guess(entered_word):
+            self.gw.show_message(f'You lose! Word: {self.__secret_word}')
+            self.set_square_with_respective_color(entered_word)
+
+        else:
+            if self.guess_counter < 5 and self.validate_guess(entered_word):
+                self.set_square_with_respective_color(entered_word)
+                self.guess_counter += 1
+                self.gw.set_current_row(self.guess_counter)
+
+    def show_win_animation(self):
+        red = "#FF0000"
+        orange = "#FFA500"
+        yellow = "#FFFF00"
+        green = "#00FF00"
+        blue = "#0000FF"
+        indigo = "#4B0082"
+        violet = "#EE82EE"
+
+        rainbow_array = [self.correct_color, red, orange, yellow,
+                         green, blue, indigo, violet, self.correct_color]
+
+        delay = 0
+
+        for col in range(5):
+            for color in rainbow_array:
+                self.set_square_color_after_delay(delay, col, color)
+                delay += 50
+
+    def set_square_color_after_delay(self, delay, col, color):
+        self.gw.delay_method_call(delay, lambda col=col: self.gw.set_square_color(
+            self.guess_counter, col, color))
 
     def get_random_word(self):
         """Gets a random word from FIVE_LETTER_WORDS array
@@ -92,9 +121,7 @@ class wordle:
 
         return "".join(word_array)
 
-    # def color_keys(self):
-
-    def validate_guess_and_color_squares(self, guess):
+    def validate_guess(self, guess):
         """Checks if word is in the dictionary array, and sets color
 
         Args:
@@ -103,55 +130,54 @@ class wordle:
         Returns:
             None
         """
-        print(guess, self.__secret_word)
 
         if guess.lower() in FIVE_LETTER_WORDS:
-
-            correct_letter_guesses = []
-
-            # i is the index for every letter in word
-            for i in range(5):
-
-                # if guess letter is in the same place as the secret word letter
-                if guess[i] == self.__secret_word_arr[i]:
-                    correct_letter_guesses.append(guess[i])
-
-                    # set color accordingly
-                    self.gw.set_square_color(
-                        self.guess_counter, i, self.correct_color)
-                    self.gw.set_key_color(guess[i], self.correct_color)
-
-                # else if guess letter is in the secret word and the number of
-                # occurances of the letter are greater in the secret word than
-                # the correct guesses array
-                elif guess[i] in self.__secret_word_arr and \
-                        self.__secret_word_arr.count(guess[i]) > correct_letter_guesses.count(guess[i]):
-                    correct_letter_guesses.append(guess[i])
-
-                    # set color accordingly
-                    self.gw.set_square_color(
-                        self.guess_counter, i, self.present_color)
-
-                    # the only time we need to use get_key color is if
-                    # the letter is present. otherwise, if it is correct
-                    # we can keep updating at green and if it is incorrect
-                    # it will never be present
-
-                    if self.gw.get_key_color(guess[i]) != self.correct_color:
-                        self.gw.set_key_color(guess[i], self.present_color)
-
-                else:
-                    self.gw.set_square_color(
-                        self.guess_counter, i, self.missing_color)
-                    self.gw.set_key_color(guess[i], self.missing_color)
-
             return True
 
         else:
             self.gw.show_message('Not a valid word')
             return False
 
+    def set_square_with_respective_color(self, guess):
+        correct_letter_guesses = []
 
-# Startup code
+        # i is the index for every letter in word
+        for i in range(5):
+
+            # if guess letter is in the same place as the secret word letter
+            if guess[i] == self.__secret_word_arr[i]:
+                correct_letter_guesses.append(guess[i])
+
+                # set color accordingly
+                self.gw.set_square_color(
+                    self.guess_counter, i, self.correct_color)
+                self.gw.set_key_color(guess[i], self.correct_color)
+
+            # else if guess letter is in the secret word and the number of
+            # occurances of the letter are greater in the secret word than
+            # the correct guesses array
+            elif guess[i] in self.__secret_word_arr and \
+                    self.__secret_word_arr.count(guess[i]) > correct_letter_guesses.count(guess[i]):
+                correct_letter_guesses.append(guess[i])
+
+                # set color accordingly
+                self.gw.set_square_color(
+                    self.guess_counter, i, self.present_color)
+
+                # the only time we need to use get_key color is if
+                # the letter is present. otherwise, if it is correct
+                # we can keep updating at green and if it is incorrect
+                # it will never be present
+
+                if self.gw.get_key_color(guess[i]) != self.correct_color:
+                    self.gw.set_key_color(guess[i], self.present_color)
+
+            else:
+                self.gw.set_square_color(
+                    self.guess_counter, i, self.missing_color)
+                self.gw.set_key_color(guess[i], self.missing_color)
+
+
+        # Startup code
 if __name__ == "__main__":
-    wordle()
+    Wordle()

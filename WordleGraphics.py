@@ -42,9 +42,9 @@ KEY_XSEP = 5
 KEY_YSEP = 7
 
 KEY_LABELS = [
-    [ "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" ],
-    [ "A", "S", "D", "F", "G", "H", "J", "K", "L" ],
-    [ "ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE" ]
+    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+    ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+    ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"]
 ]
 
 CLICK_MAX_DISTANCE = 2
@@ -57,6 +57,7 @@ BOARD_WIDTH = N_COLS * SQUARE_SIZE + (N_COLS - 1) * SQUARE_SEP
 BOARD_HEIGHT = N_ROWS * SQUARE_SIZE + (N_ROWS - 1) * SQUARE_SEP
 MESSAGE_X = CANVAS_WIDTH / 2
 MESSAGE_Y = TOP_MARGIN + BOARD_HEIGHT + MESSAGE_SEP
+
 
 class WordleGWindow:
     """This class creates the Wordle window."""
@@ -72,7 +73,7 @@ class WordleGWindow:
             ]
 
         def create_keyboard():
-            keys = { }
+            keys = {}
             nk = len(KEY_LABELS[0])
             h = KEY_HEIGHT
             y0 = CANVAS_HEIGHT - BOTTOM_MARGIN - 3 * KEY_HEIGHT - 2 * KEY_YSEP
@@ -110,7 +111,7 @@ class WordleGWindow:
                 self.show_message("")
                 s = ""
                 for col in range(N_COLS):
-                    s += self._grid[self._row][col].get_letter();
+                    s += self._grid[self._row][col].get_letter()
                 for fn in self._enter_listeners:
                     fn(s)
             elif ch.isalpha():
@@ -163,7 +164,7 @@ class WordleGWindow:
         self._grid = create_grid()
         self._message = create_message()
         self._keys = create_keyboard()
-        self._enter_listeners = [ ]
+        self._enter_listeners = []
         root.bind("<Key>", key_action)
         root.bind("<ButtonPress-1>", press_action)
         root.bind("<ButtonRelease-1>", release_action)
@@ -205,6 +206,16 @@ class WordleGWindow:
     def show_message(self, msg, color="Black"):
         self._message.set_text(msg, color)
 
+    def delay_method_call(self, delay, method, *args):
+        """Custom method to delay another method call.
+
+        Args:
+            (int) delay: time to delay in ms
+            (callback) method: method to be called
+            *args: args for method
+        """
+        self._root.after(delay, method, *args)
+
 
 class WordleSquare:
 
@@ -215,7 +226,7 @@ class WordleSquare:
         y1 = y0 + SQUARE_SIZE
         self._canvas = canvas
         self._ch = " "
-        self._color = UNKNOWN_COLOR;
+        self._color = UNKNOWN_COLOR
         self._frame = canvas.create_rectangle(x0, y0, x1, y1)
         self._text = canvas.create_text(x0 + SQUARE_SIZE / 2,
                                         y0 + SQUARE_SIZE / 2,
@@ -247,33 +258,33 @@ class WordleKey:
     def __init__(self, canvas, x, y, width, height, label):
         self._canvas = canvas
         self._label = label
-        self._bounds = [ x, y, width, height ]
+        self._bounds = [x, y, width, height]
         self._color = UNKNOWN_COLOR
         font = KEY_FONT
         if label == "ENTER":
             font = ENTER_FONT
         if label == "DELETE":
             label = "\u232B"
-        points = [ x + KEY_CORNER, y,
-                   x + KEY_CORNER, y,
-                   x + width - KEY_CORNER, y,
-                   x + width - KEY_CORNER, y,
-                   x + width, y,
-                   x + width, y + KEY_CORNER,
-                   x + width, y + KEY_CORNER,
-                   x + width, y + height - KEY_CORNER,
-                   x + width, y + height - KEY_CORNER,
-                   x + width, y + height,
-                   x + width - KEY_CORNER, y + height,
-                   x + width - KEY_CORNER, y + height,
-                   x + KEY_CORNER, y + height,
-                   x + KEY_CORNER, y + height,
-                   x, y + height,
-                   x, y + height - KEY_CORNER,
-                   x, y + height - KEY_CORNER,
-                   x, y + KEY_CORNER,
-                   x, y + KEY_CORNER,
-                   x, y]
+        points = [x + KEY_CORNER, y,
+                  x + KEY_CORNER, y,
+                  x + width - KEY_CORNER, y,
+                  x + width - KEY_CORNER, y,
+                  x + width, y,
+                  x + width, y + KEY_CORNER,
+                  x + width, y + KEY_CORNER,
+                  x + width, y + height - KEY_CORNER,
+                  x + width, y + height - KEY_CORNER,
+                  x + width, y + height,
+                  x + width - KEY_CORNER, y + height,
+                  x + width - KEY_CORNER, y + height,
+                  x + KEY_CORNER, y + height,
+                  x + KEY_CORNER, y + height,
+                  x, y + height,
+                  x, y + height - KEY_CORNER,
+                  x, y + height - KEY_CORNER,
+                  x, y + KEY_CORNER,
+                  x, y + KEY_CORNER,
+                  x, y]
         self._frame = canvas.create_polygon(points,
                                             fill=KEY_COLOR,
                                             outline=KEY_COLOR,
