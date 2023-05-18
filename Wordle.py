@@ -26,8 +26,16 @@ class Wordle:
 
         self.guess_counter = 0
 
+        self.current_best_guess = None
+
+        self.accuracy_table = {
+            "C": 20,
+            "P": 10,
+            "I": 0
+        }
+
         # Delete later
-        self.gw.show_message(self.__secret_word)
+        # self.gw.show_message(self.__secret_word)
 
     def enter_action(self, s):
         """Events that occur after action. For this case, it gets a user's guess
@@ -42,21 +50,28 @@ class Wordle:
             None
         """
 
-        entered_word = self.get_user_guess(self.guess_counter)
+        user_guess = self.get_user_guess(self.guess_counter)
 
-        if entered_word == self.__secret_word \
-                and self.validate_guess(entered_word):
+        if user_guess == self.__secret_word \
+                and self.validate_guess(user_guess):
             self.gw.show_message('You win!')
             self.show_win_animation()
 
-        elif self.guess_counter == 5 and entered_word != self.__secret_word \
-                and self.validate_guess(entered_word):
+        elif self.guess_counter == 5 and user_guess != self.__secret_word \
+                and self.validate_guess(user_guess):
             self.gw.show_message(f'You lose! Word: {self.__secret_word}')
-            self.set_square_with_respective_color(entered_word)
+
+            guess_accuracy = self.get_guess_accuracy(user_guess)
+            self.set_square_with_respective_color(
+                user_guess, guess_accuracy)
 
         else:
-            if self.guess_counter < 5 and self.validate_guess(entered_word):
-                self.set_square_with_respective_color(entered_word)
+            if self.guess_counter < 5 and self.validate_guess(user_guess):
+                self.update_current_best_guess(user_guess)
+                guess_accuracy = self.get_guess_accuracy(user_guess)
+
+                self.set_square_with_respective_color(
+                    user_guess, guess_accuracy)
                 self.guess_counter += 1
                 self.gw.set_current_row(self.guess_counter)
 
@@ -138,8 +153,14 @@ class Wordle:
             self.gw.show_message('Not a valid word')
             return False
 
-    def set_square_with_respective_color(self, guess):
+    def get_guess_accuracy(self, guess):
         correct_letter_guesses = []
+        guess_accuracy_array = []
+        guess_accuracy_percentage = 0
+
+        # C = Correct placement
+        # P = Partially correct placement
+        # I = Incorrect placement
 
         # i is the index for every letter in word
         for i in range(5):
@@ -147,31 +168,45 @@ class Wordle:
             # if guess letter is in the same place as the secret word letter
             if guess[i] == self.__secret_word_arr[i]:
                 correct_letter_guesses.append(guess[i])
-
-                # set color accordingly
-                self.gw.set_square_color(
-                    self.guess_counter, i, self.correct_color)
-                self.gw.set_key_color(guess[i], self.correct_color)
+                guess_accuracy_array.append("C")
 
             # else if guess letter is in the secret word and the number of
             # occurances of the letter are greater in the secret word than
             # the correct guesses array
+            # this is to prevent duplicates
             elif guess[i] in self.__secret_word_arr and \
                     self.__secret_word_arr.count(guess[i]) > correct_letter_guesses.count(guess[i]):
                 correct_letter_guesses.append(guess[i])
+                guess_accuracy_array.append("P")
 
-                # set color accordingly
+            else:
+                guess_accuracy_array.append("I")
+
+        for letter in guess_accuracy_array:
+            guess_accuracy_percentage += self.accuracy_table[letter]
+
+        return {
+            "array": guess_accuracy_array,
+            "percentage": guess_accuracy_percentage,
+        }
+
+    def update_current_best_guess(self, guess):
+        if self.current_best_guess == None:
+            self.current_best_guess = guess
+
+        elif self.get_guess_accuracy(guess)["percentage"] > self.get_guess_accuracy(self.current_best_guess)["percentage"]:
+            self.current_best_guess = guess
+
+    def set_square_with_respective_color(self, guess, accuracy):
+        for i in range(5):
+            if accuracy["array"][i] == "C":
+                self.gw.set_square_color(
+                    self.guess_counter, i, self.correct_color)
+                self.gw.set_key_color(guess[i], self.correct_color)
+            elif accuracy["array"][i] == "P":
                 self.gw.set_square_color(
                     self.guess_counter, i, self.present_color)
-
-                # the only time we need to use get_key color is if
-                # the letter is present. otherwise, if it is correct
-                # we can keep updating at green and if it is incorrect
-                # it will never be present
-
-                if self.gw.get_key_color(guess[i]) != self.correct_color:
-                    self.gw.set_key_color(guess[i], self.present_color)
-
+                self.gw.set_key_color(guess[i], self.present_color)
             else:
                 self.gw.set_square_color(
                     self.guess_counter, i, self.missing_color)
