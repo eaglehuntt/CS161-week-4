@@ -28,10 +28,16 @@ class Wordle:
 
         self.current_best_guess = None
 
-        self.accuracy_table = {
-            "C": 20,
-            "P": 10,
-            "I": 0
+        self.accuracy_array_table = {
+            "correct": "C",
+            "partially": "P",
+            "incorrect": "I"
+        }
+
+        self.accuracy_percentage_table = {
+            self.accuracy_array_table["correct"]: 20,
+            self.accuracy_array_table["partially"]: 10,
+            self.accuracy_array_table["incorrect"]: 0
         }
 
         # Delete later
@@ -137,7 +143,7 @@ class Wordle:
         return "".join(word_array)
 
     def validate_guess(self, guess):
-        """Checks if word is in the dictionary array, and sets color
+        """Checks if word is in the dictionary array
 
         Args:
             (string) word: a 5 letter word
@@ -154,10 +160,15 @@ class Wordle:
             return False
 
     def get_guess_accuracy(self, guess):
-        correct_letter_guesses = []
-        guess_accuracy_array = []
+        """Gets the accuracy of a guess as an object. The array will contain 
+        keys indicating how accurate the letter is relative to the guess.
+        """
+
+        correct_letter_guesses = []  # used for logic
+        guess_accuracy_array = []  # shadow array to the guess containing keys
         guess_accuracy_percentage = 0
 
+        # guess_accuracy_array key:
         # C = Correct placement
         # P = Partially correct placement
         # I = Incorrect placement
@@ -168,12 +179,17 @@ class Wordle:
             # if guess letter is in the same place as the secret word letter
             if guess[i] == self.__secret_word_arr[i]:
                 correct_letter_guesses.append(guess[i])
+
+                # add C to array because it is correct
                 guess_accuracy_array.append("C")
 
-            # else if guess letter is in the secret word and the number of
+            # else if the guess letter is in the secret word and the number of
             # occurances of the letter are greater in the secret word than
-            # the correct guesses array
-            # this is to prevent duplicates
+            # the correct guesses array:
+                # this is to prevent duplicates from showing yellow
+                # for example, if the word is 'haste' and user guesses
+                # 'eaten' only one 'e' will be yellow.
+
             elif guess[i] in self.__secret_word_arr and \
                     self.__secret_word_arr.count(guess[i]) > correct_letter_guesses.count(guess[i]):
                 correct_letter_guesses.append(guess[i])
@@ -182,19 +198,27 @@ class Wordle:
             else:
                 guess_accuracy_array.append("I")
 
-        for letter in guess_accuracy_array:
-            guess_accuracy_percentage += self.accuracy_table[letter]
+        # the way we calculate the accuracy percentage is by iterating over
+        # the accuracy array and checking the accuracy table for percentage
+        # values.
+
+        for i in guess_accuracy_array:
+            guess_accuracy_percentage += self.accuracy_percentage_table[i]
+
+        # I am not sure if this is conventional in python, but this is how
+        # javascript functions return multiple values from a function.
 
         return {
-            "array": guess_accuracy_array,
-            "percentage": guess_accuracy_percentage,
+            "array": guess_accuracy_array,  # this will be used to color squares
+            "percentage": guess_accuracy_percentage,  # percentage
         }
 
     def update_current_best_guess(self, guess):
         if self.current_best_guess == None:
             self.current_best_guess = guess
 
-        elif self.get_guess_accuracy(guess)["percentage"] > self.get_guess_accuracy(self.current_best_guess)["percentage"]:
+        elif self.get_guess_accuracy(guess)["percentage"] > \
+                self.get_guess_accuracy(self.current_best_guess)["percentage"]:
             self.current_best_guess = guess
 
     def set_square_with_respective_color(self, guess, accuracy):
@@ -212,6 +236,8 @@ class Wordle:
                     self.guess_counter, i, self.missing_color)
                 self.gw.set_key_color(guess[i], self.missing_color)
 
+    def get_all_possible_legal_words(self):
+        print(self.current_best_guess)
 
         # Startup code
 if __name__ == "__main__":
