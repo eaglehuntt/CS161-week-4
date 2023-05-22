@@ -86,3 +86,61 @@ def wordle():
     gw = WordleGWindow()
     gw.add_enter_listener(enter_action)
     milestone_1(get_random_word(), 1)
+
+
+def get_guess_accuracy(self, guess):
+    """Gets the accuracy of a guess as an object. The array will contain 
+    keys indicating how accurate the letter is relative to the guess.
+    """
+
+    correct_letter_guesses = []  # used for logic
+    guess_accuracy_array = []  # shadow array to the guess containing keys
+    guess_accuracy_percentage = 0
+
+    # guess_accuracy_array key:
+    # C = Correct placement
+    # P = Partially correct placement
+    # I = Incorrect placement
+
+    # i is the index for every letter in word
+    for i in range(5):
+
+        # if guess letter is in the same place as the secret word letter
+        if guess[i] == self.__secret_word_arr[i]:
+            correct_letter_guesses.append(guess[i])
+
+            # add C to array because it is correct
+            guess_accuracy_array.append(
+                self.accuracy_array_table["correct"])
+
+        # else if the guess letter is in the secret word and the number of
+        # occurances of the letter are greater in the secret word than
+        # the correct guesses array:
+            # this is to prevent duplicates from showing yellow
+            # for example, if the word is 'haste' and user guesses
+            # 'eaten' only one 'e' will be yellow.
+
+        elif guess[i] in self.__secret_word_arr and \
+                self.__secret_word_arr.count(guess[i]) > correct_letter_guesses.count(guess[i]):
+            correct_letter_guesses.append(guess[i])
+            guess_accuracy_array.append(
+                self.accuracy_array_table["partially"])
+
+        else:
+            guess_accuracy_array.append(
+                self.accuracy_array_table["incorrect"])
+
+    # the way we calculate the accuracy percentage is by iterating over
+    # the accuracy array and checking the accuracy table for percentage
+    # values.
+
+    for i in guess_accuracy_array:
+        guess_accuracy_percentage += self.accuracy_percentage_table[i]
+
+    # I am not sure if this is conventional in python, but this is how
+    # javascript functions return multiple values from a function.
+
+    return {
+        "array": guess_accuracy_array,  # this will be used to color squares
+        "percentage": guess_accuracy_percentage,  # percentage
+    }
